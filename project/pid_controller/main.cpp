@@ -226,9 +226,9 @@ int main ()
   **/
 
   PID pid_steer = PID();
-  pid_steer.Init(3.1, .01, .15, 1.2, -1.2);
+  pid_steer.Init(.4, .0001, .001, 1.2, -1.2);
   PID pid_throttle = PID();
-  pid_steer.Init(3.1, .01, .15, 1, -1);
+  pid_throttle.Init(.2, .0001, .01, 1, -1);
 
   h.onMessage([&pid_steer, &pid_throttle, &new_delta_time, &timer, &prev_timer, &i, &prev_timer](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode)
   {
@@ -290,8 +290,8 @@ int main ()
           /**
           * TODO (step 3): uncomment these lines
           **/
-//           // Update the delta time with the previous command
-//           pid_steer.UpdateDeltaTime(new_delta_time);
+          // Update the delta time with the previous command
+          pid_steer.UpdateDeltaTime(new_delta_time);
 
           // Compute steer error
           double error_steer;
@@ -302,23 +302,47 @@ int main ()
           /**
           * TODO (step 3): compute the steer error (error_steer) from the position and the desired trajectory
           **/
-//           error_steer = 0;
+          // I get the planned point following the planned point that is closest to the current posisiton as the target 
+          // then the desired angle is the direction between our current position and the target and the error is the 
+          // difference between that and the actual yaw
+          double min_sqared_dist = 1./0.;
+          int min_index;
+          for (int i=0; i<min(x_points.size() - 1, y_points.size()); i++){
+            double xd = x_points[i] - x_position;
+            double yd = y_points[i] - y_position;
+            double squared_dist = xd * xd + yd * yd;
+            if(squared_dist < min_sqared_dist){
+              min_index = i;
+              min_sqared_dist = squared_dist;
+            }
+          }
+          cout << "min index: " << min_index << endl;
+          double target_angle = angle_between_points(x_points[min_index],  y_points[min_index],  x_points[min_index + 1],  y_points[min_index + 1]);
+          cout << "path : " << x_points[min_index] << " " <<  y_points[min_index] << " " 
+            <<  x_points[min_index + 1] << " " <<  y_points[min_index + 1] << " " << x_points[x_points.size() - 1] << " " << y_points[y_points.size() - 1]
+            << endl;
+          // double target_angle = angle_between_points( x_position,  y_position,  x_points[x_points.size() - 1],  y_points[y_points.size() - 1]);
+          cout << "position error: " << x_position - x_points[min_index] << " " << y_position - y_points[min_index] << endl;
+          // double target_angle = angle_between_points( x_position,  y_position,  x_points[x_points.size() - 1],  y_points[y_points.size() - 1]);
+          error_steer = yaw - target_angle;
 
           /**
           * TODO (step 3): uncomment these lines
           **/
-//           // Compute control to apply
-//           pid_steer.UpdateError(error_steer);
-//           steer_output = pid_steer.TotalError();
+          // Compute control to apply
+          cout << "steer error: " << error_steer << " yaw: " << yaw << " target angle " << target_angle << endl;
+          pid_steer.UpdateError(error_steer);
+          steer_output = pid_steer.TotalError();
+          cout << "steer output: " << steer_output << endl;
 
-//           // Save data
-//           file_steer.seekg(std::ios::beg);
-//           for(int j=0; j < i - 1; ++j) {
-//               file_steer.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-//           }
-//           file_steer  << i ;
-//           file_steer  << " " << error_steer;
-//           file_steer  << " " << steer_output << endl;
+          // Save data
+          file_steer.seekg(std::ios::beg);
+          for(int j=0; j < i - 1; ++j) {
+              file_steer.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
+          file_steer  << i ;
+          file_steer  << " " << error_steer;
+          file_steer  << " " << steer_output << endl;
 
           ////////////////////////////////////////
           // Throttle control
@@ -336,7 +360,7 @@ int main ()
           * TODO (step 2): compute the throttle error (error_throttle) from the position and the desired speed
           **/
           // modify the following line for step 2
-          error_throttle = velocity - v_points.back();
+          error_throttle = velocity - v_points.back(); // difference in desired and actual velocity
 
 
 

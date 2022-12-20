@@ -32,7 +32,7 @@ void PID::UpdateError(double cte) {
    /**
    * TODO: Update PID errors based on cte.
    **/
-   _d_err = (cte - _Kp) / _dt;
+   _d_err = _dt > 0 ? (cte - _Kp) / _dt : 0;
    _p_err = cte;
    _i_err += cte * _dt;
 }
@@ -43,9 +43,13 @@ double PID::TotalError() {
     * The code should return a value in the interval [output_lim_mini, output_lim_maxi]
    */
    double control;
-   control = _d_err * _Kd + _p_err * _Kp + _i_err * _Ki;
-   control = min(control, _output_lim_min);
-   control = max(control, _output_lim_max);
+   cout << "errs: " << _d_err << " " << _p_err << " " << _i_err << " " << endl;
+   // cout << "params: " << _Kd << " " << _Kp << " " << _Ki << " " << endl;
+   control = -(_d_err * _Kd + _p_err * _Kp + _i_err * _Ki);
+   cout << "raw control: " << control << endl;
+   control = max(control, _output_lim_min);
+   control = min(control, _output_lim_max);
+   // cout << "limited control: " << control << endl;
    return control;
 }
 
