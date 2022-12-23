@@ -43,13 +43,9 @@ double PID::TotalError() {
     * The code should return a value in the interval [output_lim_mini, output_lim_maxi]
    */
    double control;
-   cout << "errs: " << _d_err << " " << _p_err << " " << _i_err << " " << endl;
-   // cout << "params: " << _Kd << " " << _Kp << " " << _Ki << " " << endl;
    control = -(_d_err * _Kd + _p_err * _Kp + _i_err * _Ki);
-   cout << "raw control: " << control << endl;
    control = max(control, _output_lim_min);
    control = min(control, _output_lim_max);
-   // cout << "limited control: " << control << endl;
    return control;
 }
 
