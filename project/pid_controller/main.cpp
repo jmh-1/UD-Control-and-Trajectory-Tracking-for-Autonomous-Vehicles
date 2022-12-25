@@ -302,9 +302,8 @@ int main ()
           /**
           * TODO (step 3): compute the steer error (error_steer) from the position and the desired trajectory
           **/
-          // I get the planned point following the planned point that is closest to the current posisiton as the target 
-          // then the desired angle is the direction between our current position and the target and the error is the 
-          // difference between that and the actual yaw
+          // I get the point closest to the current position and take the target angle as the angle between that point
+          // and the following one. Then the error is the difference between that angle and the actual yaw
           double min_sqared_dist = 1./0.;
           int min_index;
           for (int i=0; i<min(x_points.size() - 1, y_points.size()); i++){
